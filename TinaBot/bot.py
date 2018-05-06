@@ -107,7 +107,7 @@ class Bot (commands.Bot):
             result += '- {}'.format(member)
             if member.nick:
                 result += ' ({})'.format(member.nick)
-            if extra[user_id]:
+            if extra.has_key(user_id):
                 result += ' {}'.format(extra[user_id])
             result += '\n'
 
