@@ -115,7 +115,9 @@ class Bot (commands.Bot):
         return result
 
     def is_admin(self, user_id, server_id = None):
-        if server_id is None:
-            return self.get_user(user_id, 'super_admin')['super_admin'] == True
+        user_data = self.get_user(user_id, 'super_admin')
+        super_admin = user_data and user_data['super_admin']
+        if super_admin or server_id is None:
+            return super_admin
         server_data = self.get_server(server_id, 'bot_admins')
         return server_data and server_data['bot_admins'] is not None and user_id in loads(server_data['bot_admins'])
