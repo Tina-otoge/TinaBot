@@ -3,6 +3,7 @@ import sqlite3
 from discord.ext import commands
 from . import cogs
 from .error_handler import CommandErrorHandler
+from config import warnings
 
 async def _react(bot, message, emoji):
     try:
@@ -51,6 +52,7 @@ class Bot (commands.Bot):
     def __init__(self, token, prefix='!', *args, **kwargs):
         super().__init__(*args, command_prefix=commands.when_mentioned_or('!'), **kwargs)
         self.token = token
+        self.warnings = warnings
         self.add_cog(cogs.Bday(self))
         self.add_cog(cogs.Admin(self))
         self.add_cog(CommandErrorHandler(self))
@@ -107,9 +109,10 @@ class Bot (commands.Bot):
             result += '- {}'.format(member)
             if member.nick:
                 result += ' ({})'.format(member.nick)
-            if extra.has_key(user_id):
-                result += ' {}'.format(extra[user_id])
+            if user_id in extra.keys():
+                result += '{}'.format(extra[user_id])
             result += '\n'
+        return result
 
     def is_admin(self, user_id, server_id = None):
         if server_id is None:
