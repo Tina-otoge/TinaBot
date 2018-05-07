@@ -1,5 +1,7 @@
 import traceback
 from discord.ext import commands
+from .errors import *
+
 class CommandErrorHandler:
 
     def __init__(self, bot):
@@ -8,7 +10,7 @@ class CommandErrorHandler:
     async def on_command_error(self, error, context):
 
         ignored = (commands.CommandNotFound)
-        public = (commands.BadArgument, commands.MissingRequiredArgument)
+        public = (commands.BadArgument, commands.MissingRequiredArgument, PriviledgeException)
 
         if hasattr(context.command, 'on_error') or isinstance(error, ignored):
             return

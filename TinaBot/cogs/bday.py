@@ -3,6 +3,7 @@ from discord.ext import commands
 from time import strftime, strptime, mktime, time
 from datetime import timedelta
 from config import null_words, bday_print_format, bday_get_formats
+from TinaBot.errors import *
 
 class Bday:
 
@@ -74,4 +75,13 @@ class Bday:
 
     @commands.command(pass_context=True)
     async def setbdaychan(self, context, channel: discord.Channel = None):
-        await self.bot.reply('TODO')
+        if not self.bot.is_admin(context.message.author.id, context.message.server.id):
+            raise PriviledgeException
+        server = context.message.server
+        if channel:
+            bday_channel_id = channel.id
+        else:
+            bday_channel_id = context.message.channel.id
+        self.bot.update_or_create_server(server.id, {"birthday_channel": bday_channel_id})
+        self.bot.db.commit()
+        await self.bot.ok(context.message)

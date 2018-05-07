@@ -1,6 +1,7 @@
 import json
 import discord
 from discord.ext import commands
+from TinaBot.errors import *
 
 class Admin:
 
@@ -14,18 +15,16 @@ class Admin:
 
         if scope == 'global':
             if not self.bot.is_admin(author_id):
-                await self.bot.reply('error: Granting global priviledges requires global priviledges.')
                 await self.bot.doubt(context.message)
-                return
+                raise PriviledgeException
             self.bot.update_or_create_user(member.id, {'super_admin': True})
             self.bot.db.commit()
             # await self.bot.reply('successfully granted {} global priviledges.'.format(member))
             await self.bot.ok(context.message)
             return
         if not self.bot.is_admin(author_id, server_id) and not self.bot.is_admin(author_id):
-            await self.bot.reply('error: Granting bot admins priviledges requires either bot admin priviledges or global priviledges.')
             await self.bot.doubt(context.message)
-            return
+            raise PriviledgeException
 
         bot_admins = self.bot.get_or_create_server(server_id, 'bot_admins')['bot_admins']
         if bot_admins:
