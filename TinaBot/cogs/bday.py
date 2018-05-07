@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
-from time import strftime, strptime
+from time import strftime, strptime, mktime, time
+from datetime import timedelta
 from config import null_words, bday_print_format, bday_get_formats
 
 class Bday:
@@ -9,13 +10,32 @@ class Bday:
         self.bot = bot
 
     @commands.command(pass_context=True)
-    async def bdays(self, context, n : int = 5):
+    async def bdays(self, context, n: int = 5):
         users_with_bday = []
-        for member in context.server.members:
+        server = context.message.server
+        extra = {}
+        if n < 1:
+            raise commands.BadArgument('number of birthdays to print must be positive and not null')
+        for member in server.members:
             user_data = self.bot.get_user(member.id, 'id, birthday')
             if user_data and user_data['birthday']:
                 users_with_bday.append(user_data)
-        await self.bot.reply('TODO')
+        for user_data in users_with_bday:
+            bday_this_year = strptime('{}-{}'.format(strftime('%Y'), user_data['birthday'][5:]), '%Y-%m-%d')
+            # oof
+            delta = mktime(bday_this_year) - time()
+            if delta < 0:
+                delta += 31536000 # one year
+                bday_this_year = strptime('{}-{}'.format(int(strftime('%Y')) + 1, user_data['birthday'][5:]), '%Y-%m-%d')
+            user_data['bday_delta'] = delta
+            extra[user_data['id']] = ': {}.'.format(strftime(bday_print_format, bday_this_year))
+        users_with_bday = sorted(users_with_bday, key=lambda k: k['bday_delta'])
+        users_with_bday = users_with_bday[:n]
+        if len(users_with_bday) < n:
+            n = len(users_with_bday)
+        msg = 'Upcoming {} next birthdays on this server: :birthday:\n'.format(n)
+        msg += self.bot.users_id_to_server_list([d['id'] for d in users_with_bday], server, extra)
+        await self.bot.reply(msg)
 
     @commands.command(pass_context=True)
     async def bday(self, context, date = None):
